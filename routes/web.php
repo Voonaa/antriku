@@ -68,6 +68,8 @@ Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function
     Route::post('/call', [PetugasController::class, 'callNext'])->name('call');
     Route::put('/done/{id}', [PetugasController::class, 'markAsDone'])->name('done');
     Route::put('/skip/{id}', [PetugasController::class, 'skipQueue'])->name('skip');
+    Route::put('/recall/{id}', [PetugasController::class, 'recall'])->name('recall');
+    Route::post('/toggle-break', [PetugasController::class, 'toggleBreak'])->name('toggle-break');
 });
 
 require __DIR__.'/auth.php';

@@ -37,18 +37,24 @@ class AdminController extends Controller
         }
 
         // 4. Ambil Data Loket & Kinerjanya Hari Ini
-        $lokets = Loket::with('layanan')->get()->map(function ($loket) use ($todayQueues) {
-            $dilayani = $todayQueues->where('loket_id', $loket->id)
-                ->whereIn('status', ['calling', 'serving', 'done'])
-                ->count();
-            return [
-                'id'             => $loket->id,
-                'nomor_loket'    => $loket->nomor_loket,
-                'status'         => $loket->status,
-                'nama_layanan'   => $loket->layanan ? $loket->layanan->nama_layanan : '-',
-                'jumlah_dilayani'=> $dilayani,
-            ];
-        });
+        $tenantId = auth()->user()->tenant_id;
+
+        $lokets = Loket::with('layanan')
+            ->where('tenant_id', $tenantId)
+            ->get()
+            ->map(function ($loket) use ($todayQueues) {
+                $dilayani = $todayQueues->where('loket_id', $loket->id)
+                    ->whereIn('status', ['calling', 'serving', 'done'])
+                    ->count();
+                return [
+                    'id'             => $loket->id,
+                    'nomor_loket'    => $loket->nomor_loket,
+                    'status'         => $loket->status, // boolean: true=buka, false=istirahat/tutup
+                    'nama_layanan'   => $loket->layanan ? $loket->layanan->nama_layanan : '-',
+                    'kode_huruf'     => $loket->layanan ? $loket->layanan->kode_huruf : '-',
+                    'jumlah_dilayani'=> $dilayani,
+                ];
+            });
 
         // 5. Daftar Layanan (filtered by TenantScope via BelongsToTenant trait)
         $layanans = Layanan::all();
