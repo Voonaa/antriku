@@ -6,6 +6,7 @@ use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class Antrian extends Model
 {
@@ -15,6 +16,7 @@ class Antrian extends Model
         'tenant_id',
         'layanan_id',
         'loket_id',
+        'token_qr',
         'nomor_urut',
         'nomor_lengkap',
         'status',
@@ -30,6 +32,9 @@ class Antrian extends Model
     protected static function booted(): void
     {
         static::creating(function (Antrian $antrian) {
+            // Generate Unique Token QR
+            $antrian->token_qr = Str::uuid()->toString();
+
             // Auto-generate nomor_urut and nomor_lengkap if not provided
             if (!$antrian->nomor_urut) {
                 $today = Carbon::today();

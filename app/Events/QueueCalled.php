@@ -34,6 +34,7 @@ class QueueCalled implements ShouldBroadcastNow
     {
         return [
             new PrivateChannel('tenant.' . $this->antrian->tenant_id),
+            new Channel('public.tenant.' . $this->antrian->tenant_id),
         ];
     }
 }

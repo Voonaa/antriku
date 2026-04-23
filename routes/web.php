@@ -32,6 +32,9 @@ Route::prefix('kiosk')->group(function () {
     Route::post('/ticket', [KioskController::class, 'takeTicket'])->name('kiosk.ticket');
 });
 
+// Public Live Tracking
+Route::get('/track/{token}', [\App\Http\Controllers\PublicQueueController::class, 'track'])->name('track.show');
+
 // TV Display Route (Protected by Auth)
 Route::middleware(['auth'])->group(function () {
     Route::get('/tv/{slug}', [KioskController::class, 'showTvDisplay'])->name('tv.show');

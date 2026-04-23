@@ -50,7 +50,7 @@ export default function Ticket({ ticket, tenant, onClose }) {
                 <p className="text-xs text-gray-400 mb-3 uppercase font-semibold print:text-[10px] print:text-black print:mb-1">Scan untuk pantau antrian</p>
                 <div className="p-3 bg-white border-2 border-gray-100 rounded-xl shadow-sm print:p-0 print:border-0 print:shadow-none">
                     <QRCodeCanvas 
-                        value={window.location.origin + `/status/${ticket.id}`} 
+                        value={window.location.origin + `/track/${ticket.token_qr}`} 
                         size={120} 
                         level={"H"} 
                         className="print:w-20 print:h-20"
