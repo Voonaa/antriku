@@ -51,14 +51,18 @@ class AdminController extends Controller
             ];
         });
 
-        return Inertia::render('Admin/Dashboard', [
+        // 5. Ambil daftar layanan untuk tabel Manajemen Layanan
+        $layanans = \App\Models\Layanan::all();
+
+        return Inertia::render('Admin/Index', [
             'metrics' => [
                 'total_hari_ini' => $totalAntrian,
                 'total_selesai' => $totalSelesai,
                 'sisa_menunggu' => $totalMenunggu,
                 'avg_wait_time' => $averageWaitTime,
             ],
-            'lokets' => $lokets
+            'lokets' => $lokets,
+            'layanans' => $layanans
         ]);
     }
 }

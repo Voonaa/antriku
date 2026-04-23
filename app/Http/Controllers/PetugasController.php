@@ -32,7 +32,7 @@ class PetugasController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        return Inertia::render('Petugas/Dashboard', [
+        return Inertia::render('Petugas/Index', [
             'layanans' => $layanans,
             'lokets' => $lokets,
             'waitingQueues' => $waitingQueues,

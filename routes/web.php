@@ -19,7 +19,11 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $role = auth()->user()->role;
+    if ($role === 'super-admin') return redirect()->route('super-admin.dashboard');
+    if ($role === 'admin-instansi') return redirect()->route('admin.dashboard');
+    if ($role === 'petugas') return redirect()->route('petugas.dashboard');
+    abort(403);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -40,6 +44,11 @@ Route::get('/track/{token}', [\App\Http\Controllers\PublicQueueController::class
 // TV Display Route (Protected by Auth)
 Route::middleware(['auth'])->group(function () {
     Route::get('/tv/{slug}', [KioskController::class, 'showTvDisplay'])->name('tv.show');
+});
+
+// Super Admin Routes (Protected)
+Route::middleware(['auth'])->prefix('super-admin')->name('super-admin.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('dashboard');
 });
 
 // Admin Routes (Protected)
