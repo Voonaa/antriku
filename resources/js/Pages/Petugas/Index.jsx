@@ -43,9 +43,30 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
     // Filter waiting list untuk layanan yang dipilih
     const filteredWaiting = waitingQueues.filter(q => q.layanan_id == selectedLayanan);
 
-    // Cek status loket yang dipilih
-    const currentLoket = lokets.find(l => l.id == selectedLoket);
-    const isOnBreak = currentLoket ? !currentLoket.status : false;
+    // ── Cek status loket yang dipilih ─────────────────────────
+    const currentLoket  = lokets.find(l => l.id == selectedLoket);
+    const isOnBreak     = currentLoket ? !currentLoket.status : false;
+
+    // ── Guard: belum ada loket yang ditetapkan ─────────────────
+    if (lokets.length === 0 || layanans.length === 0) {
+        return (
+            <AuthenticatedLayout user={auth.user} header={<h2 className="font-bold text-2xl text-gray-800">Dashboard Petugas Loket</h2>}>
+                <Head title="Petugas Loket" />
+                <div className="py-20 flex flex-col items-center justify-center text-center px-8 font-sans">
+                    <div className="bg-orange-50 border-2 border-orange-200 rounded-3xl p-12 max-w-lg">
+                        <svg className="w-16 h-16 text-orange-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <h3 className="text-2xl font-bold text-orange-800 mb-3">Belum Ada Loket / Layanan</h3>
+                        <p className="text-orange-600 text-base leading-relaxed">
+                            Akun Anda belum memiliki <strong>Loket</strong> atau <strong>Layanan</strong> yang terdaftar di instansi ini.
+                            Silakan hubungi Admin Instansi Anda untuk menambahkan data loket terlebih dahulu.
+                        </p>
+                    </div>
+                </div>
+            </AuthenticatedLayout>
+        );
+    }
 
     return (
         <AuthenticatedLayout
