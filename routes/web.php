@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    $tenants = \App\Models\Tenant::all();
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'tenants' => $tenants,
     ]);
 });
 
@@ -29,7 +31,7 @@ Route::middleware('auth')->group(function () {
 // Kiosk Routes (Public)
 Route::prefix('kiosk')->group(function () {
     Route::get('/{slug}', [KioskController::class, 'showInstansi'])->name('kiosk.show');
-    Route::post('/ticket', [KioskController::class, 'takeTicket'])->name('kiosk.ticket');
+    Route::post('/ticket', [KioskController::class, 'takeTicket'])->middleware('throttle:3,1')->name('kiosk.ticket');
 });
 
 // Public Live Tracking
