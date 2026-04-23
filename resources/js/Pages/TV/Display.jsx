@@ -23,8 +23,27 @@ export default function TvDisplay({ tenant }) {
             // Set Antrian Saat Ini
             setCurrentQueue(e.antrian);
             
-            // Mainkan Suara
+            // Mainkan Suara Beep
             audio.play().catch(err => console.error("Audio play failed:", err));
+            
+            // Logika Text-to-Speech (TTS)
+            if ('speechSynthesis' in window) {
+                // Beri jeda sedikit agar suara beep selesai dulu
+                setTimeout(() => {
+                    const parts = e.antrian.nomor_lengkap.split('-');
+                    const huruf = parts[0];
+                    const angka = parts[1].split('').map(char => char === '0' ? 'kosong' : char).join('... ');
+                    
+                    const textToSpeak = `Nomor antrian... ${huruf}... ${angka}... silakan menuju... loket... ${e.antrian.loket?.nomor_loket}`;
+                    
+                    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                    utterance.lang = 'id-ID';
+                    utterance.rate = 0.85; // Sedikit diperlambat agar jelas
+                    utterance.pitch = 1;
+                    
+                    window.speechSynthesis.speak(utterance);
+                }, 1500); // Jeda 1.5 detik
+            }
             
             // Animasi berkedip
             setIsBlinking(true);

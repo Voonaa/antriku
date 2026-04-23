@@ -28,7 +28,7 @@ export default function KioskIndex({ tenant }) {
 
     if (ticket) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6 print:p-0 print:bg-white print:items-start print:justify-start">
                 <Ticket ticket={ticket} tenant={tenant} onClose={() => setTicket(null)} />
             </div>
         );
