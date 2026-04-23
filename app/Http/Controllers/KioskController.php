@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Antrian;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class KioskController extends Controller
 {
@@ -12,12 +13,18 @@ class KioskController extends Controller
     {
         $tenant = Tenant::with('layanans')->where('slug', $slug)->firstOrFail();
 
-        return response()->json([
-            'tenant' => $tenant,
-            'message' => 'Silakan tampilkan di UI Kiosk menggunakan data ini.'
+        return Inertia::render('Kiosk/Index', [
+            'tenant' => $tenant
         ]);
-        // Dalam implementasi Inertia, ini akan menjadi:
-        // return inertia('Kiosk/Index', ['tenant' => $tenant]);
+    }
+
+    public function showTvDisplay($slug)
+    {
+        $tenant = Tenant::where('slug', $slug)->firstOrFail();
+
+        return Inertia::render('TV/Display', [
+            'tenant' => $tenant
+        ]);
     }
 
     public function takeTicket(Request $request)

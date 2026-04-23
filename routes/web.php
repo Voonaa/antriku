@@ -32,13 +32,19 @@ Route::prefix('kiosk')->group(function () {
     Route::post('/ticket', [KioskController::class, 'takeTicket'])->name('kiosk.ticket');
 });
 
+// TV Display Route (Protected by Auth)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/tv/{slug}', [KioskController::class, 'showTvDisplay'])->name('tv.show');
+});
+
 // Petugas Routes (Protected)
 Route::middleware(['auth', function ($request, $next) {
-    if (!auth()->check() || auth()->user()->role !== 'petugas') {
+    if (!auth()->check() || auth()->user()->role !== 'petugas' && auth()->user()->role !== 'admin-instansi' && auth()->user()->role !== 'super-admin') {
         abort(403, 'Unauthorized access.');
     }
     return $next($request);
 }])->prefix('petugas')->name('petugas.')->group(function () {
+    Route::get('/dashboard', [PetugasController::class, 'index'])->name('dashboard');
     Route::post('/call', [PetugasController::class, 'callNext'])->name('call');
     Route::put('/done/{id}', [PetugasController::class, 'markAsDone'])->name('done');
     Route::put('/skip/{id}', [PetugasController::class, 'skipQueue'])->name('skip');
