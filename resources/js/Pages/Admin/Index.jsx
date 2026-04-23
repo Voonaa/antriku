@@ -27,10 +27,11 @@ function InputField({ label, id, error, ...props }) {
     );
 }
 
-export default function AdminIndex({ auth, metrics, lokets, layanans, staff }) {
+export default function AdminIndex({ auth, metrics, lokets, layanans, staff, tenant }) {
     const { flash } = usePage().props;
     const [showLayananModal, setShowLayananModal] = useState(false);
     const [showStaffModal, setShowStaffModal] = useState(false);
+    const [logoPreview, setLogoPreview] = useState(tenant?.logo || null);
 
     // Form: Tambah Layanan
     const layananForm = useForm({ nama_layanan: '', kode_huruf: '', estimasi_menit: 15 });
@@ -47,6 +48,23 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff }) {
         e.preventDefault();
         staffForm.post(route('admin.staff.store'), {
             onSuccess: () => { setShowStaffModal(false); staffForm.reset(); }
+        });
+    };
+
+    // Form: Upload Logo
+    const logoForm = useForm({ logo: null });
+    const handleLogoChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            logoForm.setData('logo', file);
+            setLogoPreview(URL.createObjectURL(file));
+        }
+    };
+    const submitLogo = (e) => {
+        e.preventDefault();
+        logoForm.post(route('admin.logo.upload'), {
+            forceFormData: true,
+            onSuccess: () => { logoForm.reset(); }
         });
     };
 
@@ -71,6 +89,47 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff }) {
                             ✅ {flash.success}
                         </div>
                     )}
+
+                    {/* Card: Profil & Logo Instansi */}
+                    <div className="bg-white shadow-sm sm:rounded-2xl border border-gray-100 overflow-hidden">
+                        <div className="p-6 border-b border-gray-100 bg-gray-50">
+                            <h3 className="text-lg font-bold text-gray-800">Profil & Branding Instansi</h3>
+                            <p className="text-sm text-gray-500">Logo ini akan tampil di Kiosk, TV Display, dan struk tiket.</p>
+                        </div>
+                        <div className="p-6 flex flex-col md:flex-row items-center gap-8">
+                            {/* Logo Preview */}
+                            <div className="flex-shrink-0">
+                                {logoPreview ? (
+                                    <img src={logoPreview} alt="Logo Instansi" className="h-24 w-auto object-contain rounded-xl border border-gray-200 p-2 bg-gray-50 shadow-sm" />
+                                ) : (
+                                    <div className="h-24 w-32 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
+                                        <p className="text-xs text-gray-400 text-center px-2">Belum ada logo</p>
+                                    </div>
+                                )}
+                            </div>
+                            {/* Upload Form */}
+                            <form onSubmit={submitLogo} className="flex-1 flex flex-col sm:flex-row items-start sm:items-end gap-4">
+                                <div className="flex-1 w-full">
+                                    <label className="block text-sm font-bold text-gray-700 mb-1">Upload Logo Baru</label>
+                                    <input
+                                        type="file"
+                                        accept=".png,.jpg,.jpeg,.svg,.webp"
+                                        onChange={handleLogoChange}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 border border-gray-300 rounded-xl p-1"
+                                    />
+                                    <p className="text-xs text-gray-400 mt-1">Format: PNG, JPG, SVG, WebP. Maks: 2MB.</p>
+                                    {logoForm.errors.logo && <p className="text-red-500 text-xs mt-1">{logoForm.errors.logo}</p>}
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={logoForm.processing || !logoForm.data.logo}
+                                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-sm transition-colors text-sm whitespace-nowrap"
+                                >
+                                    {logoForm.processing ? 'Mengunggah...' : '⬆️ Simpan Logo'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
 
                     {/* Stat Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

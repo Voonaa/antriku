@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Antrian;
 use App\Models\Layanan;
 use App\Models\Loket;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -66,6 +68,7 @@ class AdminController extends Controller
             'lokets'   => $lokets,
             'layanans' => $layanans,
             'staff'    => $staff,
+            'tenant'   => Tenant::find(auth()->user()->tenant_id),
         ]);
     }
 
@@ -121,5 +124,29 @@ class AdminController extends Controller
 
         return redirect()->route('admin.dashboard')
             ->with('success', 'Petugas berhasil didaftarkan.');
+    }
+
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|file|mimes:png,jpg,jpeg,svg,webp|max:2048',
+        ]);
+
+        $tenant = Tenant::findOrFail(auth()->user()->tenant_id);
+
+        // Hapus logo lama jika ada
+        if ($tenant->logo) {
+            $oldPath = str_replace('/storage/', '', parse_url($tenant->logo, PHP_URL_PATH));
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        // Simpan logo baru ke storage/app/public/logos/
+        $path = $request->file('logo')->store('logos', 'public');
+
+        // Simpan URL publik ke database
+        $tenant->update(['logo' => Storage::url($path)]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Logo instansi berhasil diperbarui.');
     }
 }
