@@ -2,20 +2,28 @@ import { QRCodeCanvas } from 'qrcode.react';
 import React, { useEffect } from 'react';
 
 export default function Ticket({ ticket, tenant, onClose }) {
-    // Auto close ticket after 10 seconds (only if not printing)
+    // Auto close ticket after 5 seconds
     useEffect(() => {
         const timer = setTimeout(() => {
             onClose();
-        }, 10000);
+        }, 5000);
         return () => clearTimeout(timer);
     }, [onClose]);
+
+    // Auto print on load
+    useEffect(() => {
+        const printTimer = setTimeout(() => {
+            window.print();
+        }, 500); // Beri jeda 500ms agar DOM render sempurna sebelum print dialog
+        return () => clearTimeout(printTimer);
+    }, []);
 
     const handlePrint = () => {
         window.print();
     };
 
     return (
-        <div className="bg-white text-gray-800 rounded-3xl shadow-2xl p-10 max-w-sm w-full relative overflow-hidden print:shadow-none print:p-0 print:rounded-none print:w-[58mm] print:mx-auto print:bg-white print:text-black">
+        <div className="bg-white text-gray-800 rounded-3xl shadow-2xl p-10 max-w-sm w-full relative overflow-hidden print:shadow-none print:p-0 print:rounded-none print:w-[78mm] print:mx-auto print:bg-white print:text-black">
             {/* Header Border (Hidden on print) */}
             <div className="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-blue-500 to-indigo-600 print:hidden"></div>
             
