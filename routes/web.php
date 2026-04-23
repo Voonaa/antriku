@@ -37,13 +37,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tv/{slug}', [KioskController::class, 'showTvDisplay'])->name('tv.show');
 });
 
+// Admin Routes (Protected)
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+});
+
 // Petugas Routes (Protected)
-Route::middleware(['auth', function ($request, $next) {
-    if (!auth()->check() || auth()->user()->role !== 'petugas' && auth()->user()->role !== 'admin-instansi' && auth()->user()->role !== 'super-admin') {
-        abort(403, 'Unauthorized access.');
-    }
-    return $next($request);
-}])->prefix('petugas')->name('petugas.')->group(function () {
+Route::middleware(['auth'])->prefix('petugas')->name('petugas.')->group(function () {
     Route::get('/dashboard', [PetugasController::class, 'index'])->name('dashboard');
     Route::post('/call', [PetugasController::class, 'callNext'])->name('call');
     Route::put('/done/{id}', [PetugasController::class, 'markAsDone'])->name('done');
