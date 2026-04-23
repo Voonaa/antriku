@@ -49,11 +49,16 @@ Route::middleware(['auth'])->group(function () {
 // Super Admin Routes (Protected)
 Route::middleware(['auth'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('dashboard');
+    Route::post('/tenants', [\App\Http\Controllers\SuperAdminController::class, 'store'])->name('tenants.store');
+    Route::post('/tenants/{id}/admins', [\App\Http\Controllers\SuperAdminController::class, 'storeAdmin'])->name('tenants.admins.store');
 });
 
 // Admin Routes (Protected)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
+    Route::post('/layanans', [\App\Http\Controllers\AdminController::class, 'storeLayanan'])->name('layanans.store');
+    Route::delete('/layanans/{id}', [\App\Http\Controllers\AdminController::class, 'destroyLayanan'])->name('layanans.destroy');
+    Route::post('/staff', [\App\Http\Controllers\AdminController::class, 'storeStaff'])->name('staff.store');
 });
 
 // Petugas Routes (Protected)

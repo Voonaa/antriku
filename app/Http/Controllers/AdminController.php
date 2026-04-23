@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Antrian;
+use App\Models\Layanan;
 use App\Models\Loket;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
@@ -16,53 +19,107 @@ class AdminController extends Controller
         $todayQueues = Antrian::whereDate('created_at', Carbon::today())->get();
 
         // 2. Hitung Metrik Utama
-        $totalAntrian = $todayQueues->count();
-        $totalSelesai = $todayQueues->where('status', 'done')->count();
+        $totalAntrian  = $todayQueues->count();
+        $totalSelesai  = $todayQueues->where('status', 'done')->count();
         $totalMenunggu = $todayQueues->where('status', 'waiting')->count();
 
         // 3. Hitung Rata-rata Waktu Tunggu (dalam menit)
-        $queuesWithWaitTime = $todayQueues->filter(function ($queue) {
-            return $queue->waktu_panggil !== null;
-        });
+        $queuesWithWaitTime = $todayQueues->filter(fn($q) => $q->waktu_panggil !== null);
 
         $averageWaitTime = 0;
         if ($queuesWithWaitTime->count() > 0) {
             $totalMinutes = $queuesWithWaitTime->reduce(function ($carry, $queue) {
-                $created = Carbon::parse($queue->created_at);
-                $called = Carbon::parse($queue->waktu_panggil);
-                return $carry + $created->diffInMinutes($called);
+                return $carry + Carbon::parse($queue->created_at)->diffInMinutes(Carbon::parse($queue->waktu_panggil));
             }, 0);
-            
             $averageWaitTime = round($totalMinutes / $queuesWithWaitTime->count());
         }
 
         // 4. Ambil Data Loket & Kinerjanya Hari Ini
-        // Kita hitung jumlah antrian yang dilayani oleh masing-masing loket
         $lokets = Loket::with('layanan')->get()->map(function ($loket) use ($todayQueues) {
             $dilayani = $todayQueues->where('loket_id', $loket->id)
-                                    ->whereIn('status', ['calling', 'serving', 'done'])
-                                    ->count();
+                ->whereIn('status', ['calling', 'serving', 'done'])
+                ->count();
             return [
-                'id' => $loket->id,
-                'nomor_loket' => $loket->nomor_loket,
-                'status' => $loket->status,
-                'nama_layanan' => $loket->layanan ? $loket->layanan->nama_layanan : '-',
-                'jumlah_dilayani' => $dilayani
+                'id'             => $loket->id,
+                'nomor_loket'    => $loket->nomor_loket,
+                'status'         => $loket->status,
+                'nama_layanan'   => $loket->layanan ? $loket->layanan->nama_layanan : '-',
+                'jumlah_dilayani'=> $dilayani,
             ];
         });
 
-        // 5. Ambil daftar layanan untuk tabel Manajemen Layanan
-        $layanans = \App\Models\Layanan::all();
+        // 5. Daftar Layanan (filtered by TenantScope via BelongsToTenant trait)
+        $layanans = Layanan::all();
+
+        // 6. Daftar Petugas untuk tenant ini
+        $staff = User::where('role', 'petugas')
+            ->where('tenant_id', auth()->user()->tenant_id)
+            ->get(['id', 'name', 'email']);
 
         return Inertia::render('Admin/Index', [
             'metrics' => [
                 'total_hari_ini' => $totalAntrian,
-                'total_selesai' => $totalSelesai,
-                'sisa_menunggu' => $totalMenunggu,
-                'avg_wait_time' => $averageWaitTime,
+                'total_selesai'  => $totalSelesai,
+                'sisa_menunggu'  => $totalMenunggu,
+                'avg_wait_time'  => $averageWaitTime,
             ],
-            'lokets' => $lokets,
-            'layanans' => $layanans
+            'lokets'   => $lokets,
+            'layanans' => $layanans,
+            'staff'    => $staff,
         ]);
+    }
+
+    public function storeLayanan(Request $request)
+    {
+        $request->validate([
+            'nama_layanan'   => 'required|string|max:255',
+            'kode_huruf'     => ['required', 'string', 'max:5', 'regex:/^[A-Za-z]+$/'],
+            'estimasi_menit' => 'required|integer|min:1',
+        ]);
+
+        Layanan::create([
+            'tenant_id'      => auth()->user()->tenant_id,
+            'nama_layanan'   => $request->nama_layanan,
+            'kode_huruf'     => strtoupper($request->kode_huruf),
+            'estimasi_menit' => $request->estimasi_menit,
+        ]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Layanan berhasil ditambahkan.');
+    }
+
+    public function destroyLayanan($id)
+    {
+        $layanan = Layanan::withoutGlobalScopes()->findOrFail($id);
+
+        // Pastikan layanan milik tenant admin yang sedang login
+        if ($layanan->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $layanan->delete();
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Layanan berhasil dihapus.');
+    }
+
+    public function storeStaff(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|min:8',
+        ]);
+
+        User::create([
+            'name'      => $request->name,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
+            'role'      => 'petugas',
+            'tenant_id' => auth()->user()->tenant_id,
+        ]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Petugas berhasil didaftarkan.');
     }
 }
