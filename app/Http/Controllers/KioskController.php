@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Antrian;
+use App\Models\Tenant;
+use Illuminate\Http\Request;
+
+class KioskController extends Controller
+{
+    public function showInstansi($slug)
+    {
+        $tenant = Tenant::with('layanans')->where('slug', $slug)->firstOrFail();
+
+        return response()->json([
+            'tenant' => $tenant,
+            'message' => 'Silakan tampilkan di UI Kiosk menggunakan data ini.'
+        ]);
+        // Dalam implementasi Inertia, ini akan menjadi:
+        // return inertia('Kiosk/Index', ['tenant' => $tenant]);
+    }
+
+    public function takeTicket(Request $request)
+    {
+        $request->validate([
+            'tenant_id' => 'required|exists:tenants,id',
+            'layanan_id' => 'required|exists:layanans,id',
+        ]);
+
+        $antrian = Antrian::create([
+            'tenant_id' => $request->tenant_id,
+            'layanan_id' => $request->layanan_id,
+            'status' => 'waiting',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'ticket' => $antrian,
+        ]);
+    }
+}
