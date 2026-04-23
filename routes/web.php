@@ -58,6 +58,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'index'])->name('dashboard');
     Route::post('/layanans', [\App\Http\Controllers\AdminController::class, 'storeLayanan'])->name('layanans.store');
     Route::delete('/layanans/{id}', [\App\Http\Controllers\AdminController::class, 'destroyLayanan'])->name('layanans.destroy');
+    Route::post('/lokets', [\App\Http\Controllers\AdminController::class, 'storeLoket'])->name('lokets.store');
+    Route::delete('/lokets/{id}', [\App\Http\Controllers\AdminController::class, 'destroyLoket'])->name('lokets.destroy');
     Route::post('/staff', [\App\Http\Controllers\AdminController::class, 'storeStaff'])->name('staff.store');
     Route::post('/logo', [\App\Http\Controllers\AdminController::class, 'uploadLogo'])->name('logo.upload');
 });

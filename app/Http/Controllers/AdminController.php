@@ -132,6 +132,38 @@ class AdminController extends Controller
             ->with('success', 'Petugas berhasil didaftarkan.');
     }
 
+    public function storeLoket(Request $request)
+    {
+        $request->validate([
+            'nomor_loket' => 'required|string|max:20',
+            'layanan_id'  => 'required|exists:layanans,id',
+        ]);
+
+        Loket::create([
+            'tenant_id'   => auth()->user()->tenant_id,
+            'layanan_id'  => $request->layanan_id,
+            'nomor_loket' => $request->nomor_loket,
+            'status'      => true, // default: buka
+        ]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Loket berhasil ditambahkan.');
+    }
+
+    public function destroyLoket($id)
+    {
+        $loket = Loket::withoutGlobalScopes()->findOrFail($id);
+
+        if ($loket->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $loket->delete();
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Loket berhasil dihapus.');
+    }
+
     public function uploadLogo(Request $request)
     {
         $request->validate([
