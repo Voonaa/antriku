@@ -72,41 +72,45 @@ function waitForVoices() {
 // Format: "Nomor antrian, A, dua puluh lima.
 //          Silakan menuju, loket, tiga."
 // ══════════════════════════════════════════════════════════════
-async function speakBankStyle(nomorLengkap, nomor_loket, nama_layanan) {
-    window.speechSynthesis.cancel();
+function speakBankStyle(nomorLengkap, nomor_loket, nama_layanan) {
+    // Mengembalikan Promise yang resolve SAAT speech selesai diucapkan
+    return new Promise(async (resolve) => {
+        window.speechSynthesis.cancel();
 
-    const voices = await waitForVoices();
+        const voices = await waitForVoices();
 
-    // Prioritas: Google Bahasa Indonesia → id-ID apa saja → fallback
-    const voice =
-        voices.find(v => v.name.toLowerCase().includes('google') && v.lang.startsWith('id')) ||
-        voices.find(v => v.lang === 'id-ID') ||
-        voices.find(v => v.lang.startsWith('id')) ||
-        voices[0];
+        // Prioritas: Google Bahasa Indonesia → id-ID apa saja → fallback
+        const voice =
+            voices.find(v => v.name.toLowerCase().includes('google') && v.lang.startsWith('id')) ||
+            voices.find(v => v.lang === 'id-ID') ||
+            voices.find(v => v.lang.startsWith('id')) ||
+            voices[0];
 
-    // Parse nomor: "A-025" → huruf="A", angka=25 → "dua puluh lima"
-    const parts   = nomorLengkap.split('-');
-    const huruf   = parts[0].toUpperCase();
-    const angka   = parseInt(parts[1] || '0', 10);
-    const loket   = parseInt(nomor_loket || '0', 10);
+        const parts     = nomorLengkap.split('-');
+        const huruf     = parts[0].toUpperCase();
+        const angka     = parseInt(parts[1] || '0', 10);
+        const loket     = parseInt(nomor_loket || '0', 10);
+        const angkaKata = numberToId(angka);
+        const loketKata = numberToId(loket);
 
-    const angkaKata = numberToId(angka);
-    const loketKata = numberToId(loket);
+        const kalimat =
+            `Nomor antrian, ${huruf}, ${angkaKata}. ` +
+            `Silakan menuju, loket, ${loketKata}. ` +
+            `Layanan, ${nama_layanan}.`;
 
-    // Format kalimat bank: jelas, formal, ada jeda dengan koma
-    const kalimat =
-        `Nomor antrian, ${huruf}, ${angkaKata}. ` +
-        `Silakan menuju, loket, ${loketKata}. ` +
-        `Layanan, ${nama_layanan}.`;
+        const utter  = new SpeechSynthesisUtterance(kalimat);
+        utter.lang   = 'id-ID';
+        utter.rate   = 0.88;
+        utter.pitch  = 1.05;
+        utter.volume = 1;
+        if (voice) utter.voice = voice;
 
-    const utter   = new SpeechSynthesisUtterance(kalimat);
-    utter.lang    = 'id-ID';
-    utter.rate    = 0.88;   // sedikit lambat agar jelas
-    utter.pitch   = 1.05;   // sedikit lebih tinggi agar terdengar cerah
-    utter.volume  = 1;
-    if (voice) utter.voice = voice;
+        // Resolve Promise saat ucapan selesai (atau error)
+        utter.onend   = resolve;
+        utter.onerror = resolve;
 
-    window.speechSynthesis.speak(utter);
+        window.speechSynthesis.speak(utter);
+    });
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -152,29 +156,28 @@ export default function TvDisplay({ tenant }) {
             const antrian = e.antrian;
             setCurrentQueue(antrian);
 
-            // Animasi berkedip 6 detik
+            // Animasi berkedip — diperpanjang untuk mencakup 2x pengumuman
             setIsBlinking(true);
-            setTimeout(() => setIsBlinking(false), 6000);
+            setTimeout(() => setIsBlinking(false), 18000);
 
-            // 1) Mainkan bunyi "ding dong" bank
+            // ── Pengumuman Pertama ──────────────────────────────
             await playBankDing();
-
-            // 2) Ucapkan pengumuman gaya bank
             await speakBankStyle(
                 antrian.nomor_lengkap,
                 antrian.loket?.nomor_loket,
                 antrian.layanan?.nama_layanan || ''
             );
 
-            // 3) Ulangi sekali setelah 2 detik (seperti di bank)
-            setTimeout(async () => {
-                await playBankDing();
-                await speakBankStyle(
-                    antrian.nomor_lengkap,
-                    antrian.loket?.nomor_loket,
-                    antrian.layanan?.nama_layanan || ''
-                );
-            }, 4000);
+            // ── Jeda 2 detik SETELAH ucapan pertama selesai ────
+            await new Promise(r => setTimeout(r, 2000));
+
+            // ── Pengumuman Kedua (pengulangan) ──────────────────
+            await playBankDing();
+            await speakBankStyle(
+                antrian.nomor_lengkap,
+                antrian.loket?.nomor_loket,
+                antrian.layanan?.nama_layanan || ''
+            );
         });
 
         return () => {
@@ -255,8 +258,7 @@ export default function TvDisplay({ tenant }) {
                         {/* Badge suara aktif */}
                         <div className="flex items-center justify-center gap-2 text-green-400 text-sm font-bold">
                             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
-                            Suara Aktif — Gaya Bank
-                        </div>
+                            Suara Aktif                      </div>
                     </div>
                 </div>
 
