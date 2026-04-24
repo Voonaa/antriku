@@ -48,9 +48,17 @@ Route::middleware(['auth'])->group(function () {
 
 // Super Admin Routes (Protected)
 Route::middleware(['auth'])->prefix('super-admin')->name('super-admin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('dashboard');
-    Route::post('/tenants', [\App\Http\Controllers\SuperAdminController::class, 'store'])->name('tenants.store');
-    Route::post('/tenants/{id}/admins', [\App\Http\Controllers\SuperAdminController::class, 'storeAdmin'])->name('tenants.admins.store');
+    Route::get('/dashboard',                   [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('dashboard');
+    // Tenant CRUD
+    Route::post('/tenants',                    [\App\Http\Controllers\SuperAdminController::class, 'store'])->name('tenants.store');
+    Route::put('/tenants/{id}',                [\App\Http\Controllers\SuperAdminController::class, 'updateTenant'])->name('tenants.update');
+    Route::delete('/tenants/{id}',             [\App\Http\Controllers\SuperAdminController::class, 'destroyTenant'])->name('tenants.destroy');
+    // Admin management
+    Route::post('/tenants/{id}/admins',        [\App\Http\Controllers\SuperAdminController::class, 'storeAdmin'])->name('tenants.admins.store');
+    Route::put('/admins/{userId}/reset-pass',  [\App\Http\Controllers\SuperAdminController::class, 'resetPassword'])->name('admins.reset-password');
+    Route::delete('/admins/{userId}',          [\App\Http\Controllers\SuperAdminController::class, 'destroyAdmin'])->name('admins.destroy');
+    // Tools
+    Route::post('/tenants/{id}/reset-antrian', [\App\Http\Controllers\SuperAdminController::class, 'resetAntrian'])->name('tenants.reset-antrian');
 });
 
 // Admin Routes (Protected)
