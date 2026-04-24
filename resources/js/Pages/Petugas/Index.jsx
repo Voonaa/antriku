@@ -73,7 +73,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
             user={auth.user}
             header={
                 <div className="flex justify-between items-center">
-                    <h2 className="font-bold text-2xl text-gray-800 leading-tight">Dashboard Petugas Loket</h2>
+                    <h2 className="font-bold text-2xl text-slate-800 leading-tight">Loket Anda: {currentLoket?.nomor_loket || '-'}</h2>
                     {/* Tombol Istirahat di pojok kanan header */}
                     {selectedLoket && (
                         <button
@@ -193,7 +193,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                                             {/* Panggil Lagi */}
                                             <button
                                                 onClick={() => recall(currentActive.id)}
-                                                className="flex flex-col items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-4 px-3 rounded-2xl shadow-md transition-all transform active:scale-95"
+                                                className="flex flex-col items-center justify-center bg-white border-2 border-primary hover:bg-teal-50 text-primary font-bold py-4 px-3 rounded-2xl shadow-sm transition-all transform active:scale-95"
                                             >
                                                 <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
                                                 <span className="text-sm">Panggil Lagi</span>
@@ -202,7 +202,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                                             {/* Selesai */}
                                             <button
                                                 onClick={() => markDone(currentActive.id)}
-                                                className="flex flex-col items-center justify-center bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-3 rounded-2xl shadow-md transition-all transform active:scale-95"
+                                                className="flex flex-col items-center justify-center bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-700 font-bold py-4 px-3 rounded-2xl shadow-sm transition-all transform active:scale-95"
                                             >
                                                 <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 <span className="text-sm">Selesai</span>
@@ -211,7 +211,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                                             {/* Lewati */}
                                             <button
                                                 onClick={() => skipQueue(currentActive.id)}
-                                                className="flex flex-col items-center justify-center bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-3 rounded-2xl shadow-md transition-all transform active:scale-95"
+                                                className="flex flex-col items-center justify-center bg-white border-2 border-slate-300 hover:bg-slate-50 text-slate-500 font-bold py-4 px-3 rounded-2xl shadow-sm transition-all transform active:scale-95"
                                             >
                                                 <svg className="w-7 h-7 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
                                                 <span className="text-sm">Lewati</span>
@@ -222,7 +222,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                                         <button
                                             onClick={callNext}
                                             disabled={processing || filteredWaiting.length === 0 || isOnBreak}
-                                            className="w-full bg-primary hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black py-5 px-8 rounded-2xl shadow-lg transition-transform transform active:scale-95 text-xl tracking-wide uppercase"
+                                            className="w-full bg-accent hover:opacity-90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black py-5 px-8 rounded-2xl shadow-lg transition-transform transform active:scale-95 text-xl tracking-wide uppercase"
                                         >
                                             {isOnBreak
                                                 ? '⏸ Loket Istirahat'

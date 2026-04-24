@@ -48,6 +48,9 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff, ten
     const [showStaffModal,   setShowStaffModal]   = useState(false);
     const [logoPreview,      setLogoPreview]      = useState(tenant?.logo || null);
 
+    const [editLayananData, setEditLayananData] = useState(null);
+    const [editLoketData,   setEditLoketData]   = useState(null);
+
     // ─── Form: Tambah Layanan ─────────────────────────────────
     const layananForm = useForm({ nama_layanan: '', kode_huruf: '', estimasi_menit: 15 });
     const submitLayanan = (e) => {
@@ -57,12 +60,48 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff, ten
         });
     };
 
+    // ─── Form: Edit Layanan ───────────────────────────────────
+    const editLayananForm = useForm({ nama_layanan: '', kode_huruf: '', estimasi_menit: 15 });
+    const openEditLayanan = (l) => {
+        setEditLayananData(l);
+        editLayananForm.setData({
+            nama_layanan: l.nama_layanan,
+            kode_huruf: l.kode_huruf,
+            estimasi_menit: l.estimasi_menit,
+        });
+    };
+    const submitEditLayanan = (e) => {
+        e.preventDefault();
+        editLayananForm.put(route('admin.layanans.update', editLayananData.id), {
+            onSuccess: () => { setEditLayananData(null); editLayananForm.reset(); }
+        });
+    };
+
     // ─── Form: Tambah Loket ───────────────────────────────────
     const loketForm = useForm({ nomor_loket: '', layanan_id: layanans[0]?.id || '' });
     const submitLoket = (e) => {
         e.preventDefault();
         loketForm.post(route('admin.lokets.store'), {
             onSuccess: () => { setShowLoketModal(false); loketForm.reset(); }
+        });
+    };
+
+    // ─── Form: Edit Loket ─────────────────────────────────────
+    const editLoketForm = useForm({ nomor_loket: '', layanan_id: '' });
+    const openEditLoket = (l) => {
+        setEditLoketData(l);
+        editLoketForm.setData({
+            nomor_loket: l.nomor_loket,
+            // Cari id layanan aslinya (karena l cuma punya nama_layanan jika tidak diload layanannya, 
+            // tunggu, lokets di controller punya layanan_id ga? Coba cek.)
+            // Kita temukan saja dari array layanans berdasarkan nama_layanan yang cocok:
+            layanan_id: layanans.find(lay => lay.nama_layanan === l.nama_layanan)?.id || layanans[0]?.id || '',
+        });
+    };
+    const submitEditLoket = (e) => {
+        e.preventDefault();
+        editLoketForm.put(route('admin.lokets.update', editLoketData.id), {
+            onSuccess: () => { setEditLoketData(null); editLoketForm.reset(); }
         });
     };
 
@@ -212,7 +251,14 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff, ten
                                                 <td className="p-4 font-medium text-gray-800 text-sm">{l.nama_layanan}</td>
                                                 <td className="p-4 text-center text-gray-500 text-sm">{l.estimasi_menit} mnt</td>
                                                 <td className="p-4 text-right">
-                                                    <button onClick={() => deleteLayanan(l.id)} className="text-red-600 hover:text-red-900 font-bold text-sm">Hapus</button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button onClick={() => openEditLayanan(l)} className="text-slate-400 hover:text-accent p-1 transition-colors" title="Edit">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                        </button>
+                                                        <button onClick={() => deleteLayanan(l.id)} className="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Hapus">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -267,7 +313,14 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff, ten
                                                 </td>
                                                 <td className="p-4 text-center font-bold text-indigo-600 text-sm">{l.jumlah_dilayani}</td>
                                                 <td className="p-4 text-right">
-                                                    <button onClick={() => deleteLoket(l.id)} className="text-red-600 hover:text-red-900 font-bold text-sm">Hapus</button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button onClick={() => openEditLoket(l)} className="text-slate-400 hover:text-accent p-1 transition-colors" title="Edit">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                        </button>
+                                                        <button onClick={() => deleteLoket(l.id)} className="text-slate-400 hover:text-red-600 p-1 transition-colors" title="Hapus">
+                                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -372,6 +425,50 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff, ten
                     <button type="submit" disabled={loketForm.processing}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors disabled:opacity-50">
                         {loketForm.processing ? 'Menyimpan...' : 'Simpan Loket'}
+                    </button>
+                </form>
+            </Modal>
+
+            {/* ── Modal: Edit Layanan ────────────────────────────────── */}
+            <Modal show={!!editLayananData} title="Edit Data Layanan" onClose={() => setEditLayananData(null)}>
+                <form onSubmit={submitEditLayanan} className="space-y-4">
+                    <InputField label="Nama Layanan" id="edit_nama_layanan" type="text" placeholder="Contoh: Pembuatan KTP"
+                        value={editLayananForm.data.nama_layanan} onChange={e => editLayananForm.setData('nama_layanan', e.target.value)}
+                        error={editLayananForm.errors.nama_layanan} required/>
+                    <div className="grid grid-cols-2 gap-4">
+                        <InputField label="Kode Awalan" id="edit_kode_huruf" type="text" placeholder="A" maxLength="5"
+                            value={editLayananForm.data.kode_huruf} onChange={e => editLayananForm.setData('kode_huruf', e.target.value.toUpperCase())}
+                            error={editLayananForm.errors.kode_huruf} required/>
+                        <InputField label="Estimasi (menit)" id="edit_estimasi_menit" type="number" min="1"
+                            value={editLayananForm.data.estimasi_menit} onChange={e => editLayananForm.setData('estimasi_menit', e.target.value)}
+                            error={editLayananForm.errors.estimasi_menit} required/>
+                    </div>
+                    <button type="submit" disabled={editLayananForm.processing}
+                        className="w-full bg-primary hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors disabled:opacity-50">
+                        {editLayananForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    </button>
+                </form>
+            </Modal>
+
+            {/* ── Modal: Edit Loket ──────────────────────────────────── */}
+            <Modal show={!!editLoketData} title="Edit Data Loket" onClose={() => setEditLoketData(null)}>
+                <form onSubmit={submitEditLoket} className="space-y-4">
+                    <InputField label="Nomor Loket" id="edit_nomor_loket" type="text" placeholder="Contoh: 1"
+                        value={editLoketForm.data.nomor_loket} onChange={e => editLoketForm.setData('nomor_loket', e.target.value)}
+                        error={editLoketForm.errors.nomor_loket} required/>
+                    <Field label="Layanan yang Ditangani" id="edit_layanan_id" error={editLoketForm.errors.layanan_id}>
+                        <select id="edit_layanan_id" value={editLoketForm.data.layanan_id}
+                            onChange={e => editLoketForm.setData('layanan_id', e.target.value)}
+                            className="w-full border-gray-300 rounded-xl shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <option value="">-- Pilih Layanan --</option>
+                            {layanans?.map(l => (
+                                <option key={l.id} value={l.id}>{l.kode_huruf} — {l.nama_layanan}</option>
+                            ))}
+                        </select>
+                    </Field>
+                    <button type="submit" disabled={editLoketForm.processing}
+                        className="w-full bg-primary hover:bg-teal-700 text-white font-bold py-3 rounded-xl shadow-md transition-colors disabled:opacity-50">
+                        {editLoketForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                     </button>
                 </form>
             </Modal>

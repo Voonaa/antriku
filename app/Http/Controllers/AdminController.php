@@ -112,6 +112,30 @@ class AdminController extends Controller
             ->with('success', 'Layanan berhasil dihapus.');
     }
 
+    public function updateLayanan(Request $request, $id)
+    {
+        $request->validate([
+            'nama_layanan'   => 'required|string|max:255',
+            'kode_huruf'     => ['required', 'string', 'max:5', 'regex:/^[A-Za-z]+$/'],
+            'estimasi_menit' => 'required|integer|min:1',
+        ]);
+
+        $layanan = Layanan::withoutGlobalScopes()->findOrFail($id);
+
+        if ($layanan->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $layanan->update([
+            'nama_layanan'   => $request->nama_layanan,
+            'kode_huruf'     => strtoupper($request->kode_huruf),
+            'estimasi_menit' => $request->estimasi_menit,
+        ]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Layanan berhasil diperbarui.');
+    }
+
     public function storeStaff(Request $request)
     {
         $request->validate([
@@ -162,6 +186,28 @@ class AdminController extends Controller
 
         return redirect()->route('admin.dashboard')
             ->with('success', 'Loket berhasil dihapus.');
+    }
+
+    public function updateLoket(Request $request, $id)
+    {
+        $request->validate([
+            'nomor_loket' => 'required|string|max:20',
+            'layanan_id'  => 'required|exists:layanans,id',
+        ]);
+
+        $loket = Loket::withoutGlobalScopes()->findOrFail($id);
+
+        if ($loket->tenant_id !== auth()->user()->tenant_id) {
+            abort(403, 'Akses ditolak.');
+        }
+
+        $loket->update([
+            'layanan_id'  => $request->layanan_id,
+            'nomor_loket' => $request->nomor_loket,
+        ]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Loket berhasil diperbarui.');
     }
 
     public function uploadLogo(Request $request)
