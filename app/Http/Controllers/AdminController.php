@@ -50,6 +50,7 @@ class AdminController extends Controller
                     'id'             => $loket->id,
                     'nomor_loket'    => $loket->nomor_loket,
                     'status'         => $loket->status, // boolean: true=buka, false=istirahat/tutup
+                    'layanan_id'     => $loket->layanan_id,
                     'nama_layanan'   => $loket->layanan ? $loket->layanan->nama_layanan : '-',
                     'kode_huruf'     => $loket->layanan ? $loket->layanan->kode_huruf : '-',
                     'jumlah_dilayani'=> $dilayani,
