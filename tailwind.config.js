@@ -13,8 +13,13 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['"Plus Jakarta Sans"', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                primary: '#0D9488', // Teal-600 (Pirus)
+                accent: '#F97316',  // Orange-500 (Oranye)
+                dark: '#1E293B',    // Slate-800
+            }
         },
     },
 
