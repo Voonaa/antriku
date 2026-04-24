@@ -125,15 +125,19 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                         </div>
                     )}
 
-                    {/* Panel Konfigurasi */}
-                    <div className="bg-white p-6 shadow-sm sm:rounded-2xl border-l-4 border-indigo-500 flex flex-col md:flex-row gap-6 items-center justify-between">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-800 mb-1">Posisi Penjagaan Saya</h3>
-                            <p className="text-sm text-gray-500">Pilih loket dan layanan yang Anda tangani hari ini.</p>
+                    <div className="bg-white p-6 shadow-sm sm:rounded-2xl border border-slate-200 flex flex-col md:flex-row gap-6 items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-teal-50 text-primary rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800 mb-1">Posisi Penjagaan Saya</h3>
+                                <p className="text-sm text-slate-500">Pilih loket dan layanan yang Anda tangani hari ini.</p>
+                            </div>
                         </div>
                         <div className="flex gap-4 w-full md:w-auto">
                             <select
-                                className="border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 w-full md:w-52 font-semibold"
+                                className="border-slate-300 rounded-xl shadow-sm focus:border-primary focus:ring-primary w-full md:w-52 font-semibold text-slate-700"
                                 value={selectedLayanan}
                                 onChange={handleLayananChange}
                             >
@@ -142,7 +146,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                                 ))}
                             </select>
                             <select
-                                className="border-gray-300 rounded-xl shadow-sm focus:border-indigo-500 focus:ring-indigo-500 w-full md:w-36 font-semibold"
+                                className="border-slate-300 rounded-xl shadow-sm focus:border-primary focus:ring-primary w-full md:w-36 font-semibold text-slate-700"
                                 value={selectedLoket}
                                 onChange={handleLoketChange}
                             >
@@ -159,24 +163,24 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                         <div className="lg:col-span-2 space-y-4">
 
                             {/* Layar Nomor Aktif */}
-                            <div className="bg-white overflow-hidden shadow-xl sm:rounded-3xl border border-gray-100">
-                                <div className="p-8 text-center bg-gradient-to-b from-gray-50 to-white">
-                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Sedang Dilayani di Loket {currentLoket?.nomor_loket || '-'}</p>
+                            <div className="bg-white overflow-hidden shadow-sm sm:rounded-3xl border border-slate-200">
+                                <div className="p-8 text-center bg-slate-50 border-b border-slate-100">
+                                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Sedang Dilayani di Loket {currentLoket?.nomor_loket || '-'}</p>
 
                                     {currentActive ? (
                                         <div>
-                                            <h1 className="text-8xl md:text-9xl font-black text-indigo-600 mb-2 tracking-tighter animate-pulse">
+                                            <h1 className="text-8xl md:text-9xl font-black text-primary mb-2 tracking-tighter animate-pulse drop-shadow-sm">
                                                 {currentActive.nomor_lengkap}
                                             </h1>
-                                            <p className="text-lg font-semibold text-gray-600">Layanan: {currentActive.layanan?.nama_layanan}</p>
-                                            <p className="text-sm text-gray-400 mt-1">
+                                            <p className="text-lg font-semibold text-slate-600">Layanan: {currentActive.layanan?.nama_layanan}</p>
+                                            <p className="text-sm text-slate-400 mt-1">
                                                 Dipanggil: {new Date(currentActive.waktu_panggil).toLocaleTimeString('id-ID')}
                                             </p>
                                         </div>
                                     ) : (
                                         <div className="py-12">
-                                            <h1 className="text-6xl font-bold text-gray-200 mb-4">--</h1>
-                                            <p className="text-gray-400 font-medium">Belum ada antrian aktif di loket ini.</p>
+                                            <h1 className="text-6xl font-bold text-slate-300 mb-4">--</h1>
+                                            <p className="text-slate-500 font-medium">Belum ada antrian aktif di loket ini.</p>
                                         </div>
                                     )}
                                 </div>
@@ -218,7 +222,7 @@ export default function PetugasIndex({ auth, layanans, lokets, waitingQueues, ac
                                         <button
                                             onClick={callNext}
                                             disabled={processing || filteredWaiting.length === 0 || isOnBreak}
-                                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-black py-5 px-8 rounded-2xl shadow-lg transition-transform transform active:scale-95 text-xl tracking-wide uppercase"
+                                            className="w-full bg-primary hover:bg-teal-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-black py-5 px-8 rounded-2xl shadow-lg transition-transform transform active:scale-95 text-xl tracking-wide uppercase"
                                         >
                                             {isOnBreak
                                                 ? '⏸ Loket Istirahat'

@@ -37,13 +37,7 @@ function InputField({ label, id, error, ...props }) {
     );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────
-const STAT_COLORS = {
-    blue:   'bg-blue-100 text-blue-600',
-    green:  'bg-green-100 text-green-600',
-    yellow: 'bg-yellow-100 text-yellow-600',
-    purple: 'bg-purple-100 text-purple-600',
-};
+// Removed STAT_COLORS
 
 export default function AdminIndex({ auth, metrics, lokets, layanans, staff, tenant }) {
     const { flash } = usePage().props;
@@ -167,17 +161,21 @@ export default function AdminIndex({ auth, metrics, lokets, layanans, staff, ten
                             { label: 'Selesai',         value: metrics.total_selesai,  color: 'green',  icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
                             { label: 'Menunggu',        value: metrics.sisa_menunggu,  color: 'yellow', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
                             { label: 'Rata-rata (mnt)', value: metrics.avg_wait_time,  color: 'purple', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
-                        ].map(({ label, value, color, icon }) => (
-                            <div key={label} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
-                                <div className={`p-3 rounded-xl flex-shrink-0 ${STAT_COLORS[color]}`}>
-                                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={icon}/></svg>
+                        ].map(({ label, value, color, icon }) => {
+                            const isAccent = ['yellow', 'orange', 'purple'].includes(color);
+                            const iconClass = isAccent ? 'bg-orange-50 text-accent' : 'bg-teal-50 text-primary';
+                            return (
+                                <div key={label} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow">
+                                    <div className={`p-3 rounded-xl flex-shrink-0 ${iconClass}`}>
+                                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={icon}/></svg>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+                                        <p className="text-3xl font-black text-slate-800 leading-none mt-1">{value}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 font-medium">{label}</p>
-                                    <p className="text-3xl font-black text-gray-800">{value}</p>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* ── Layanan & Loket side by side ──────────────────── */}

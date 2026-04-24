@@ -31,21 +31,17 @@ function InputField({ label, id, error, ...props }) {
 }
 
 function StatCard({ label, value, color, icon }) {
-    const colors = {
-        indigo: 'from-indigo-600 to-indigo-500',
-        blue:   'from-blue-600 to-blue-500',
-        emerald:'from-emerald-600 to-emerald-500',
-        violet: 'from-violet-600 to-violet-500',
-        amber:  'from-amber-500 to-amber-400',
-        rose:   'from-rose-600 to-rose-500',
-        cyan:   'from-cyan-600 to-cyan-500',
-    };
+    const isAccent = ['amber', 'rose', 'yellow', 'orange'].includes(color);
+    const bgClass = isAccent ? 'bg-orange-50 text-accent' : 'bg-teal-50 text-primary';
+
     return (
-        <div className={`bg-gradient-to-br ${colors[color]} rounded-2xl p-5 text-white shadow-lg flex items-center gap-4`}>
-            <div className="bg-white/20 rounded-xl p-3 flex-shrink-0 text-2xl">{icon}</div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div className={`${bgClass} rounded-xl w-14 h-14 flex items-center justify-center text-2xl flex-shrink-0`}>
+                {icon}
+            </div>
             <div>
-                <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">{label}</p>
-                <p className="text-3xl font-black leading-none mt-0.5">{value}</p>
+                <p className="text-slate-500 text-xs font-bold uppercase tracking-wider">{label}</p>
+                <p className="text-3xl font-black text-slate-800 leading-none mt-1">{value}</p>
             </div>
         </div>
     );
