@@ -23,8 +23,40 @@ export default function Ticket({ ticket, tenant, onClose }) {
     };
 
     return (
-        <div className="bg-white text-dark rounded-3xl shadow-2xl p-10 max-w-sm w-full relative overflow-hidden font-sans
-                        print:shadow-none print:p-0 print:rounded-none print:w-[78mm] print:mx-auto print:bg-white print:text-black print:overflow-visible">
+        <>
+            <style>
+                {`
+                    @page {
+                        margin: 0;
+                        size: 80mm auto;
+                    }
+                    @media print {
+                        body * {
+                            visibility: hidden;
+                        }
+                        .print-fix, .print-fix * {
+                            visibility: visible;
+                        }
+                        .print-fix {
+                            position: absolute !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            width: 300px !important;
+                            max-width: 300px !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                        }
+                        .print-fix * {
+                            color: #000000 !important;
+                            font-family: Arial, Helvetica, sans-serif !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                    }
+                `}
+            </style>
+            <div className="bg-white text-dark rounded-3xl shadow-2xl p-10 max-w-sm w-full relative overflow-hidden font-sans
+                            print:shadow-none print:p-0 print:rounded-none print:bg-white print:overflow-visible print-fix">
             
             {/* Screen only decor */}
             <div className="absolute top-0 left-0 w-full h-4 bg-primary print:hidden"></div>
@@ -66,7 +98,7 @@ export default function Ticket({ ticket, tenant, onClose }) {
             </div>
 
             {/* QR Code */}
-            <div className="flex flex-col items-center justify-center mb-8 print:mb-8">
+            <div className="flex flex-col items-center justify-center mb-8 print:mb-4">
                 <p className="text-sm text-gray-500 mb-3 font-bold print:text-black print:mb-2">Scan QR untuk Live Tracking</p>
                 <div className="p-3 bg-white border-2 border-gray-100 rounded-2xl shadow-sm print:p-0 print:border-0 print:shadow-none">
                     <QRCodeCanvas 
@@ -76,6 +108,12 @@ export default function Ticket({ ticket, tenant, onClose }) {
                         className="print:w-28 print:h-28"
                     />
                 </div>
+            </div>
+
+            {/* Teks penutup untuk memaksa printer maju dan mengamankan posisi QR code */}
+            <div className="hidden print:block text-center mt-2 mb-8 border-t border-dashed border-gray-300 pt-4">
+                <p className="text-sm font-bold text-black mb-1">Terima Kasih</p>
+                <p className="text-xs text-black">Harap tunggu nomor Anda dipanggil</p>
             </div>
 
             {/* Screen Only Footer */}
@@ -100,5 +138,6 @@ export default function Ticket({ ticket, tenant, onClose }) {
                 </button>
             </div>
         </div>
+        </>
     );
 }

@@ -219,19 +219,109 @@ class AdminController extends Controller
 
         $tenant = Tenant::findOrFail(auth()->user()->tenant_id);
 
-        // Hapus logo lama jika ada
         if ($tenant->logo) {
             $oldPath = str_replace('/storage/', '', parse_url($tenant->logo, PHP_URL_PATH));
             Storage::disk('public')->delete($oldPath);
         }
 
-        // Simpan logo baru ke storage/app/public/logos/
         $path = $request->file('logo')->store('logos', 'public');
-
-        // Simpan URL publik ke database
         $tenant->update(['logo' => Storage::url($path)]);
 
         return redirect()->route('admin.dashboard')
             ->with('success', 'Logo instansi berhasil diperbarui.');
+    }
+
+    public function updateYoutubeUrl(Request $request)
+    {
+        $request->validate([
+            'youtube_url' => 'nullable|url|max:500',
+        ]);
+
+        $tenant = Tenant::findOrFail(auth()->user()->tenant_id);
+        $tenant->update(['youtube_url' => $request->youtube_url]);
+
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'URL Video YouTube berhasil disimpan.');
+    }
+
+    public function analytics()
+    {
+        $tenantId = auth()->user()->tenant_id;
+
+        $weeklyData = collect(range(6, 0))->map(function ($daysAgo) use ($tenantId) {
+            $date = now()->subDays($daysAgo)->toDateString();
+            $antrians = Antrian::where('tenant_id', $tenantId)->whereDate('created_at', $date);
+            return [
+                'tanggal'  => now()->subDays($daysAgo)->format('d/m'),
+                'total'    => (clone $antrians)->count(),
+                'selesai'  => (clone $antrians)->where('status', 'done')->count(),
+                'menunggu' => (clone $antrians)->where('status', 'waiting')->count(),
+            ];
+        });
+
+        $byLayanan = Layanan::where('tenant_id', $tenantId)->get()->map(function ($l) use ($tenantId) {
+            return [
+                'nama'  => $l->nama_layanan,
+                'total' => Antrian::where('tenant_id', $tenantId)
+                    ->where('layanan_id', $l->id)
+                    ->whereDate('created_at', today())
+                    ->count(),
+            ];
+        });
+
+        $stats = [
+            'total_hari_ini' => Antrian::where('tenant_id', $tenantId)->whereDate('created_at', today())->count(),
+            'total_selesai'  => Antrian::where('tenant_id', $tenantId)->whereDate('created_at', today())->where('status', 'done')->count(),
+            'total_menunggu' => Antrian::where('tenant_id', $tenantId)->whereDate('created_at', today())->where('status', 'waiting')->count(),
+            'total_layanan'  => Layanan::where('tenant_id', $tenantId)->count(),
+        ];
+
+        return Inertia::render('Admin/Analytics', [
+            'weeklyData' => $weeklyData,
+            'byLayanan'  => $byLayanan,
+            'stats'      => $stats,
+        ]);
+    }
+
+    public function queues()
+    {
+        $tenantId = auth()->user()->tenant_id;
+
+        $antrians = Antrian::with(['layanan', 'loket'])
+            ->where('tenant_id', $tenantId)
+            ->whereDate('created_at', today())
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($a) => [
+                'id'            => $a->id,
+                'nomor_lengkap' => $a->nomor_lengkap,
+                'layanan'       => $a->layanan->nama_layanan ?? '-',
+                'loket'         => $a->loket ? 'Loket ' . $a->loket->nomor_loket : '-',
+                'status'        => $a->status,
+                'waktu'         => $a->created_at->format('H:i'),
+                'waktu_panggil' => $a->waktu_panggil ? \Carbon\Carbon::parse($a->waktu_panggil)->format('H:i') : '-',
+            ]);
+
+        return Inertia::render('Admin/Queues', [
+            'antrians' => $antrians,
+            'stats' => [
+                'total'   => $antrians->count(),
+                'waiting' => $antrians->where('status', 'waiting')->count(),
+                'done'    => $antrians->where('status', 'done')->count(),
+                'calling' => $antrians->whereIn('status', ['calling', 'serving'])->count(),
+            ],
+        ]);
+    }
+
+    public function downloadLaporan(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $tanggal  = $request->get('tanggal', today()->toDateString());
+        $filename = 'laporan-antrian-' . $tanggal . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\AntrianExport($tenantId, $tanggal),
+            $filename
+        );
     }
 }

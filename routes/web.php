@@ -18,6 +18,21 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/terms', function () {
+    return Inertia::render('Static/Terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return Inertia::render('Static/Privacy');
+})->name('privacy');
+
+Route::get('/status', function () {
+    return Inertia::render('Static/Status');
+})->name('status');
+
+Route::get('/support', function () {
+    return Inertia::render('Static/Support');
+})->name('support');
 Route::get('/dashboard', function () {
     $role = auth()->user()->role;
     if ($role === 'super-admin') return redirect()->route('super-admin.dashboard');
@@ -32,6 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::middleware('auth')->group(function () {
+    Route::get('/settings', function () {
+        return Inertia::render('Settings');
+    })->name('settings');
+});
 // Kiosk Routes (Public)
 Route::prefix('kiosk')->group(function () {
     Route::get('/{slug}', [KioskController::class, 'showInstansi'])->name('kiosk.show');
@@ -59,6 +79,13 @@ Route::middleware(['auth'])->prefix('super-admin')->name('super-admin.')->group(
     Route::delete('/admins/{userId}',          [\App\Http\Controllers\SuperAdminController::class, 'destroyAdmin'])->name('admins.destroy');
     // Tools
     Route::post('/tenants/{id}/reset-antrian', [\App\Http\Controllers\SuperAdminController::class, 'resetAntrian'])->name('tenants.reset-antrian');
+    // Analytics & Pages
+    Route::get('/analytics', [\App\Http\Controllers\SuperAdminController::class, 'analytics'])->name('analytics');
+    Route::get('/queues',    [\App\Http\Controllers\SuperAdminController::class, 'allQueues'])->name('queues');
+    Route::get('/tenants',   [\App\Http\Controllers\SuperAdminController::class, 'allTenants'])->name('tenants');
+    
+    // User Management
+    Route::resource('users', \App\Http\Controllers\SuperAdminUserController::class)->except(['create', 'show', 'edit']);
 });
 
 // Admin Routes (Protected)
@@ -72,6 +99,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::delete('/lokets/{id}', [\App\Http\Controllers\AdminController::class, 'destroyLoket'])->name('lokets.destroy');
     Route::post('/staff', [\App\Http\Controllers\AdminController::class, 'storeStaff'])->name('staff.store');
     Route::post('/logo', [\App\Http\Controllers\AdminController::class, 'uploadLogo'])->name('logo.upload');
+    Route::post('/youtube', [\App\Http\Controllers\AdminController::class, 'updateYoutubeUrl'])->name('youtube.update');
+    // Analytics, Queues & Export
+    Route::get('/analytics', [\App\Http\Controllers\AdminController::class, 'analytics'])->name('analytics');
+    Route::get('/queues',    [\App\Http\Controllers\AdminController::class, 'queues'])->name('queues');
+    Route::get('/laporan',   [\App\Http\Controllers\AdminController::class, 'downloadLaporan'])->name('laporan.download');
 });
 
 // Petugas Routes (Protected)

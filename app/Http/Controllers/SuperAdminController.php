@@ -146,4 +146,92 @@ class SuperAdminController extends Controller
         return redirect()->route('super-admin.dashboard')
             ->with('success', "{$count} antrian hari ini untuk {$tenant->nama_instansi} berhasil direset.");
     }
+
+    /** Analytics – statistik platform keseluruhan */
+    public function analytics()
+    {
+        // Antrian per hari 7 hari terakhir
+        $weeklyData = collect(range(6, 0))->map(function ($daysAgo) {
+            $date = now()->subDays($daysAgo)->toDateString();
+            return [
+                'tanggal'  => now()->subDays($daysAgo)->format('d/m'),
+                'total'    => Antrian::whereDate('created_at', $date)->count(),
+                'selesai'  => Antrian::whereDate('created_at', $date)->where('status', 'done')->count(),
+                'menunggu' => Antrian::whereDate('created_at', $date)->where('status', 'waiting')->count(),
+            ];
+        });
+
+        // Antrian per instansi hari ini
+        $byTenant = Tenant::withCount([
+            'antrians as antrian_hari_ini' => fn($q) => $q->whereDate('created_at', today()),
+            'antrians as antrian_selesai'  => fn($q) => $q->whereDate('created_at', today())->where('status', 'done'),
+        ])->get()->map(fn($t) => [
+            'nama'    => $t->nama_instansi,
+            'total'   => $t->antrian_hari_ini,
+            'selesai' => $t->antrian_selesai,
+        ]);
+
+        $stats = [
+            'total_antrian_hari_ini' => Antrian::whereDate('created_at', today())->count(),
+            'total_selesai'          => Antrian::whereDate('created_at', today())->where('status', 'done')->count(),
+            'total_menunggu'         => Antrian::whereDate('created_at', today())->where('status', 'waiting')->count(),
+            'total_tenants'          => Tenant::count(),
+        ];
+
+        return Inertia::render('SuperAdmin/Analytics', [
+            'weeklyData' => $weeklyData,
+            'byTenant'   => $byTenant,
+            'stats'      => $stats,
+        ]);
+    }
+
+    /** Halaman Antrian – semua antrian aktif hari ini */
+    public function allQueues()
+    {
+        $antrians = Antrian::with(['layanan', 'loket', 'tenant'])
+            ->whereDate('created_at', today())
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($a) => [
+                'id'             => $a->id,
+                'nomor_lengkap'  => $a->nomor_lengkap,
+                'tenant'         => $a->tenant->nama_instansi ?? '-',
+                'layanan'        => $a->layanan->nama_layanan ?? '-',
+                'loket'          => $a->loket ? 'Loket ' . $a->loket->nomor_loket : '-',
+                'status'         => $a->status,
+                'waktu'          => $a->created_at->format('H:i'),
+            ]);
+
+        return Inertia::render('SuperAdmin/Queues', [
+            'antrians' => $antrians,
+            'stats' => [
+                'total'    => $antrians->count(),
+                'waiting'  => $antrians->where('status', 'waiting')->count(),
+                'done'     => $antrians->where('status', 'done')->count(),
+                'calling'  => $antrians->whereIn('status', ['calling', 'serving'])->count(),
+            ],
+        ]);
+    }
+
+    /** Halaman Instansi – detail semua instansi */
+    public function allTenants()
+    {
+        $tenants = Tenant::withCount(['layanans', 'lokets', 'antrians'])
+            ->with(['users' => fn($q) => $q->where('role', 'admin-instansi')])
+            ->get()->map(fn($t) => [
+                'id'             => $t->id,
+                'nama_instansi'  => $t->nama_instansi,
+                'slug'           => $t->slug,
+                'layanans_count' => $t->layanans_count,
+                'lokets_count'   => $t->lokets_count,
+                'antrians_count' => $t->antrians_count,
+                'admins'         => $t->users->map(fn($u) => ['name' => $u->name, 'email' => $u->email]),
+                'antrian_hari_ini' => Antrian::where('tenant_id', $t->id)->whereDate('created_at', today())->count(),
+            ]);
+
+        return Inertia::render('SuperAdmin/Tenants', [
+            'tenants' => $tenants,
+        ]);
+    }
 }
+

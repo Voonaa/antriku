@@ -11,6 +11,7 @@ class Tenant extends Model
         'nama_instansi',
         'slug',
         'logo',
+        'youtube_url',
     ];
 
     public function users(): HasMany
